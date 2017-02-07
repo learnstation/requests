@@ -11,6 +11,9 @@ This module implements the Requests API.
 """
 
 from . import sessions
+from log_request_id import local
+from log_request_id import REQUEST_ID_HEADER
+from log_request_id import REQUEST_ID_ORDER_NUMBER_HEADER
 
 
 def request(method, url, **kwargs):
@@ -53,6 +56,15 @@ def request(method, url, **kwargs):
     # avoid leaving sockets open which can trigger a ResourceWarning in some
     # cases, and look like a memory leak in others.
     with sessions.Session() as session:
+        request_id = getattr(local, "request_id", None)
+        request_order_number = getattr(local, "request_order_number", 0)
+        if request_id:
+            request_order_number = str(int(request_order_number) + 1)
+            headers = kwargs.get("headers", {})
+            if not headers.get(REQUEST_ID_HEADER, None):
+                headers.update({REQUEST_ID_HEADER: request_id})
+                headers.update({REQUEST_ID_ORDER_NUMBER_HEADER: request_order_number})
+            kwargs.update({"headers": headers})
         return session.request(method=method, url=url, **kwargs)
 
 

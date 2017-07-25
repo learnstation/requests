@@ -12,8 +12,9 @@ This module implements the Requests API.
 
 from . import sessions
 from log_request_id import local
-from log_request_id import REQUEST_ID_HEADER
-from log_request_id import REQUEST_ID_ORDER_NUMBER_HEADER
+from log_request_id import GLOBAL_REQUEST_ID_HEADER
+from log_request_id import PARENT_REQUEST_ID_HEADER
+from log_request_id import REQUEST_ID_NUMBER_HEADER
 
 
 def request(method, url, **kwargs):
@@ -56,14 +57,21 @@ def request(method, url, **kwargs):
     # avoid leaving sockets open which can trigger a ResourceWarning in some
     # cases, and look like a memory leak in others.
     with sessions.Session() as session:
-        request_id = getattr(local, "request_id", None)
-        request_order_number = getattr(local, "request_order_number", 0)
-        if request_id:
-            request_order_number = str(int(request_order_number) + 1)
+        global_request_id = getattr(local, "global_request_id", None)
+        current_request_id = getattr(local, "current_request_id", None)
+        deep_num = getattr(local, "deep_num", 0)
+        index_num = getattr(local, "index_num", 0)
+        local.index_num += 1
+
+        if global_request_id:
+            request_id_number = str(int(deep_num) + 1).zfill(16) + str(int(index_num)).zfill(16)
             headers = kwargs.get("headers", {})
-            if not headers.get(REQUEST_ID_HEADER, None):
-                headers.update({REQUEST_ID_HEADER: request_id})
-                headers.update({REQUEST_ID_ORDER_NUMBER_HEADER: request_order_number})
+            if not headers.get(GLOBAL_REQUEST_ID_HEADER, None):
+                headers.update({GLOBAL_REQUEST_ID_HEADER: global_request_id})
+            if not headers.get(PARENT_REQUEST_ID_HEADER, None):
+                headers.update({PARENT_REQUEST_ID_HEADER: current_request_id})
+            if not headers.get(REQUEST_ID_NUMBER_HEADER, None):
+                headers.update({REQUEST_ID_NUMBER_HEADER: request_id_number})
             kwargs.update({"headers": headers})
         return session.request(method=method, url=url, **kwargs)
 

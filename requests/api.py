@@ -61,7 +61,8 @@ def request(method, url, **kwargs):
         current_request_id = getattr(local, "current_request_id", None)
         deep_num = getattr(local, "deep_num", 0)
         index_num = getattr(local, "index_num", 0)
-        local.index_num += 1
+        if hasattr(local, "index_num"):
+            local.index_num += 1
 
         if global_request_id:
             request_id_number = str(int(deep_num) + 1).zfill(16) + str(int(index_num)).zfill(16)

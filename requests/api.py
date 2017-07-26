@@ -70,6 +70,7 @@ def request(method, url, **kwargs):
             if not headers.get(GLOBAL_REQUEST_ID_HEADER, None):
                 headers.update({GLOBAL_REQUEST_ID_HEADER: global_request_id})
             if not headers.get(PARENT_REQUEST_ID_HEADER, None):
+                print "requests", "PARENT_REQUEST_ID_HEADER", current_request_id
                 headers.update({PARENT_REQUEST_ID_HEADER: current_request_id})
             if not headers.get(REQUEST_ID_NUMBER_HEADER, None):
                 headers.update({REQUEST_ID_NUMBER_HEADER: request_id_number})

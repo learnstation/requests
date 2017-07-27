@@ -62,23 +62,25 @@ def request(method, url, **kwargs):
     # cases, and look like a memory leak in others.
     with sessions.Session() as session:
         if log_request_id_flag:
-            global_request_id = getattr(local, "global_request_id", None)
-            current_request_id = getattr(local, "current_request_id", None)
-            deep_num = getattr(local, "deep_num", 0)
-            index_num = getattr(local, "index_num", 0)
-            if hasattr(local, "index_num"):
-                local.index_num += 1
+            if local.record_flag:
+                print "requests record"
+                global_request_id = getattr(local, "global_request_id", None)
+                current_request_id = getattr(local, "current_request_id", None)
+                deep_num = getattr(local, "deep_num", 0)
+                index_num = getattr(local, "index_num", 0)
+                if hasattr(local, "index_num"):
+                    local.index_num += 1
 
-            if global_request_id:
-                request_id_number = str(int(deep_num) + 1).zfill(16) + str(int(index_num)).zfill(16)
-                headers = kwargs.get("headers", {})
-                if not headers.get(GLOBAL_REQUEST_ID_HEADER, None):
-                    headers.update({GLOBAL_REQUEST_ID_HEADER: global_request_id})
-                if not headers.get(PARENT_REQUEST_ID_HEADER, None):
-                    headers.update({PARENT_REQUEST_ID_HEADER: current_request_id})
-                if not headers.get(REQUEST_ID_NUMBER_HEADER, None):
-                    headers.update({REQUEST_ID_NUMBER_HEADER: request_id_number})
-                kwargs.update({"headers": headers})
+                if global_request_id:
+                    request_id_number = str(int(deep_num) + 1).zfill(16) + str(int(index_num)).zfill(16)
+                    headers = kwargs.get("headers", {})
+                    if not headers.get(GLOBAL_REQUEST_ID_HEADER, None):
+                        headers.update({GLOBAL_REQUEST_ID_HEADER: global_request_id})
+                    if not headers.get(PARENT_REQUEST_ID_HEADER, None):
+                        headers.update({PARENT_REQUEST_ID_HEADER: current_request_id})
+                    if not headers.get(REQUEST_ID_NUMBER_HEADER, None):
+                        headers.update({REQUEST_ID_NUMBER_HEADER: request_id_number})
+                    kwargs.update({"headers": headers})
         return session.request(method=method, url=url, **kwargs)
 
 
